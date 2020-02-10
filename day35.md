@@ -269,6 +269,28 @@ print(q.get())
     # 并且减轻了操作系统调度的负担
 ```
 
+```
+# ThreadPoolExcutor
+# ProcessPoolExcutor
+
+# 创建一个池子
+# tp = ThreadPoolExcutor(池中线程/进程的个数)
+# 异步提交任务
+# ret = tp.submit(函数,参数1，参数2....)
+# 获取返回值
+# ret.result()
+# 在异步的执行完所有任务之后，主线程/主进程才开始执行的代码
+# tp.shutdown() 阻塞 直到所有的任务都执行完毕
+# map方法
+# ret = tp.map(func,iterable) 迭代获取iterable中的内容，作为func的参数，让子线程来执行对应的任务
+# for i in ret: 每一个都是任务的返回值
+# 回调函数
+# ret.add_done_callback(函数名)
+# 要在ret对应的任务执行完毕之后，直接继续执行add_done_callback绑定的函数中的内容，并且ret的结果会作为参数返回给绑定的函数
+```
+
+
+
 ##### 7.1进程池
 
 ```
@@ -320,6 +342,60 @@ import os
 import time
 import random
 from concurrent.futures import ThreadPoolExecutor
+def func(i,name):
+    print('start',os.getpid())
+    time.sleep(random.randint(1,3))
+    print('end',os.getpid())
+    return '%s * %s*%s'%(name,i,os.getpid())
 
+if __name__ == '__main__':
+    p=ThreadPoolExecutor(5)
+    #ret=p.map(func,range(10))		#map方法只能传一个参数
+    #for i in ret:
+    #    print(i)
+    p_l=[]
+    for i in range(3):
+        ret=p.submit(func,i,'luwei')
+        p_l.append(ret)
+    p.shutdown()
+    for i in p_l:
+        print(i.result())   #同步阻塞
+    print('main')
+```
+
+#### 8.回调函数
+
+
+
+```
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
+def get_page(url):
+    res=requests.get(url)
+    return {'url':url,'content':res.text}	#返回值给相应线程池中的线程任务
+
+def parserpage(ret):
+    dic=ret.result()
+    print(dic['url'])
+
+tp=ThreadPoolExecutor(5)
+url_lst = [
+    'http://www.baidu.com',   # 3
+    'http://www.cnblogs.com', # 1
+    'http://www.douban.com',  # 1
+    'http://www.tencent.com',
+    'http://www.cnblogs.com/Eva-J/articles/8306047.html',
+    'http://www.cnblogs.com/Eva-J/articles/7206498.html',
+]
+ret_l=[]
+
+for url in url_lst:
+    ret=tp.submit(get_page,url)
+    ret_l.append(ret)
+    # ret.add_done_callback(parserpage)  #回调函数，线程中谁先执行完成，则谁先调用下面函数
+tp.shutdown()						#关闭线程池
+for i in ret_l:			#线程池都执行完成之后，再去取内容
+    parserpage(i)
 ```
 

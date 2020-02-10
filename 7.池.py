@@ -19,19 +19,40 @@ from concurrent.futures import ThreadPoolExecutor
 #     print('main')
 
 # 任务的参数 + 返回值
-def func(i,name):
+# def func(i,name):
+#     print('start',os.getpid())
+#     time.sleep(random.randint(1,3))
+#     print('end',os.getpid())
+#     return '%s * %s*%s'%(name,i,os.getpid())
+#
+# if __name__ == '__main__':
+#     p=ProcessPoolExecutor(5)
+#     p_l=[]
+#     for i in range(3):
+#         ret=p.submit(func,i,'luwei')
+#         p_l.append(ret)
+#     p.shutdown()
+#     for i in p_l:
+#         print(i.result())   #同步阻塞
+#     print('main')
+
+
+def func(i):
     print('start',os.getpid())
     time.sleep(random.randint(1,3))
     print('end',os.getpid())
-    return '%s * %s*%s'%(name,i,os.getpid())
+    return '%s **%s'%(i,os.getpid())
 
 if __name__ == '__main__':
-    p=ProcessPoolExecutor(5)
-    p_l=[]
-    for i in range(3):
-        ret=p.submit(func,i,'luwei')
-        p_l.append(ret)
-    p.shutdown()
-    for i in p_l:
-        print(i.result())   #同步阻塞
+    p=ThreadPoolExecutor(10)
+    ret=p.map(func,range(10))
+    for i in ret:
+        print(i)
+    # p_l=[]
+    # for i in range(3):
+    #     ret=p.submit(func,i,'luwei')
+    #     p_l.append(ret)
+    # p.shutdown()
+    # for i in p_l:
+    #     print(i.result())   #同步阻塞
     print('main')
